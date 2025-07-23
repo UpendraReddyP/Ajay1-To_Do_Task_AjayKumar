@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    ports:
+      - "5052:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password@12345
+      POSTGRES_DB: new_employee_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  backend:
+    build: ./Backend
+    container_name: Backend
+    ports:
+      - "3052:3052"
+    depends_on:
+      - postgres
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=Password@12345
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=new_employee_db
+      - HOST=0.0.0.0
+      - PORT=3052
+    restart: always
+
+  frontend:
+    build: ./Frontend
+    container_name: Frontend
+    ports:
+      - "8077:80"
+    depends_on:
+      - backend
+    restart: always
+
+  hr_page:
+    build: ./HR_Page
+    container_name: HR_Page
+    ports:
+      - "8078:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  pgdata:
+
